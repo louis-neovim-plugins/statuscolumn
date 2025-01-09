@@ -3,6 +3,8 @@
 My own take on a [statuscolumn](https://neovim.io/doc/user/options.html#'statuscolumn')
 for Neovim.
 
+![image](https://github.com/user-attachments/assets/fccfda68-9838-4954-806b-994d8f267b0d)
+
 Nothing special really, I just wanted to try my hand at makeing one, and
 implement some cool features I couldn't find in other statuscolumn plugins.
 

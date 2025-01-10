@@ -3,19 +3,38 @@ local gitsign_col = require("statuscolumn.gitsign-col")
 local diagnostics_col = require("statuscolumn.diagnostic-col")
 
 
----Decides if the statusbar should be drawn for the buffer that's being drawn by Neovim.
+local default_opts = {
+  excluded_filetypes = {
+    "neo-tree",
+    "help",
+    "lazy",
+    "man",
+  },
+}
+
+local final_opts = default_opts
+
+
+---Merges the user options with the default options.
+---
+---@param opts StatuscolumnOpts
+local function process_opts(opts)
+  if opts.excluded_filetypes then
+    final_opts.excluded_filetypes = opts.excluded_filetypes
+  end
+end
+
+
+---Decides if the statusbar should be drawn for the buffer that's being drawn by
+---Neovim.
 ---
 ---@param context Context
 ---@return boolean
 local function is_excluded_filetype(context)
-  local excluded_filetypes = {
-    "neo-tree",
-    "help",
-    "lazy",
-    "man"
-  }
-
-  return vim.tbl_contains(excluded_filetypes, vim.bo[context.draw_buffer].filetype)
+  return vim.tbl_contains(
+    final_opts.excluded_filetypes,
+    vim.bo[context.draw_buffer].filetype
+  )
 end
 
 
@@ -74,7 +93,7 @@ end
 
 ---Creates the statuscolumn: diagnostic sign > line number > border that doubles
 ---as a git indicator.
----e.g.  24 ▌
+---e.g. ' 24 ▌'
 ---
 ---This function will be called once per line. Be mindful of performance costs.
 ---This needs to be a global function for the statuscolumn to be able to call
@@ -103,12 +122,15 @@ function Generate_statuscolumn()
   return table.concat(components)
 end
 
--- vim.opt.statuscolumn = "%!v:lua.Generate_statuscolumn()"
-
 
 local M = {}
 
+---Configures nvim with the statuscolumn.
+---
+---@param opts StatuscolumnOpts
 function M.setup(opts)
+  process_opts(opts)
+
   vim.opt.statuscolumn = "%!v:lua.Generate_statuscolumn()"
 end
 

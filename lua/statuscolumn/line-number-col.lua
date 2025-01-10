@@ -39,9 +39,9 @@ end
 local function get_text(context)
   local text = ""
 
-  if context.virtnum < 0 then
-    text = " "
-  elseif context.virtnum > 0 then
+  if context.virtnum < 0 then -- A virtual line.
+    text = ""
+  elseif context.virtnum > 0 then -- Part of a wrapped line.
     local num_wraps = get_wrapped_line_height(context)
 
     if context.virtnum == num_wraps then
@@ -49,7 +49,7 @@ local function get_text(context)
     else
       text = "│"
     end
-  else
+  else -- Start of a line, wrapped or not.
     if context.is_current_window then -- Relative or normal line numbers for current buffer.
       if context.is_cursor_line then
         text = tostring(context.cursor_line)

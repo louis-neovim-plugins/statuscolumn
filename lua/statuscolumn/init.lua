@@ -1,7 +1,7 @@
 local line_number_col = require("statuscolumn.line-number-col")
 local gitsign_col = require("statuscolumn.gitsign-col")
 local diagnostics_col = require("statuscolumn.diagnostic-col")
-
+local marks_col = require("statuscolumn.marks-col")
 
 local default_opts = {
   excluded_filetypes = {
@@ -109,6 +109,7 @@ function Generate_statuscolumn()
   -- :help statuscolumn
   -- :help statusline
   local components = {
+    marks_col.generate(context),
     diagnostics_col.generate(context),
     -- Switch alignment. i.e. Segments above are aligned to the left. Segments
     -- below are aligned to the right.

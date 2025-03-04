@@ -117,4 +117,7 @@ highlight group used, not an ideal solution, but it works for now.
 
 - [ ] There are a few cases where git (maybe diagnostic as well) signs do not
       update, but I have not pinpointed when it happens, or what the cause is.
+- [ ] I have not found a way to detect when marks have changed. There are no
+      events, and I do not think it's possible to properly "wrap" the default
+      bindings to call custom functions.
 

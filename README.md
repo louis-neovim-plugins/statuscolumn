@@ -5,11 +5,11 @@ for Neovim.
 
 ![image](https://github.com/user-attachments/assets/fccfda68-9838-4954-806b-994d8f267b0d)
 
-Nothing special really, I just wanted to try my hand at makeing one, and
+Nothing special really, I just wanted to try my hand at making one, and
 implement some cool features I couldn't find in other statuscolumn plugins.
 
 The features:
-- Diagnostic signs are alone in their own column. They cannot be overwritten by
+- Diagnostic signs are in their own column. They cannot be overwritten by
   gitsigns for example.
 - Strong border with the "buffer" space.
 - Gitsigns are displayed as a different color on the border.

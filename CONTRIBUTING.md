@@ -62,7 +62,8 @@ fetch those again for the next lines in the same buffer.
 However `changedtick` is **NOT** a good way to detect when the cache should be
 invalidated. When you change the  buffer, the `changedtick` will increment, and
 your signs will likely change. Because gitsigns and diagnostics take some time
-to update, Neovim will redraw the cursorline before the signs are updated.
+to update, Neovim will redraw the cursorline before the signs are actually
+updated.
 
 The better way is to wait for the respective "changed" events for each sign
 "source" to come in, and switch a flag allowing the statuscolumn function to

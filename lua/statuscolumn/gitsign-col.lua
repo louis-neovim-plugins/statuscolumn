@@ -2,13 +2,12 @@ local extmarks = require("statuscolumn.extmarks")
 local utils = require("statuscolumn.utils")
 local td = require("throttle-debounce")
 
-
 local M = {}
 
 local border_icon = "▌"
 local cached_ns_id = nil
 local cache = utils.Cache:new()
-local fresh_signs_available = false
+local additional_signs_available = false
 
 
 ---Get the extmarks namespace id of the Gitsigns plugin.
@@ -48,11 +47,11 @@ end
 ---@return table<number, vim.api.keyset.extmark_details[]>
 local function get_cached_signs(context)
   local sign_details = cache:get_signs(context)
-  if fresh_signs_available or not sign_details then
+  if additional_signs_available or not sign_details then
     sign_details = get_git_sign_details()
     cache:add_signs(context, sign_details)
 
-    fresh_signs_available = false
+    additional_signs_available = false
   end
 
   return sign_details
@@ -80,7 +79,7 @@ end
 ---@return string
 function M.generate(context)
   local symbol = nil
-  if not fresh_signs_available then
+  if not additional_signs_available then
     symbol = cache:get_symbol(context)
   end
 
@@ -89,6 +88,7 @@ function M.generate(context)
 
     local sign_details = git_signs[context.lnum]
     symbol = get_git_symbol_from_sign_details(sign_details)
+
     cache:add_symbol(context, symbol)
   end
 
@@ -96,30 +96,47 @@ function M.generate(context)
 end
 
 
+
+-- AUTOCOMMANDS.
+--
+
+
 -- This is a debounced function, it will only trigger 150ms after the last call,
 -- no matter how many times you call it.
 local clear_cache = td.debounce_trailing(function(buffer_number)
   cache:clear_buffer(buffer_number)
-  fresh_signs_available = true
+  additional_signs_available = true
 end, 150)
 
 
--- No need to clear the cache because the buffer hasn't changed. However.
--- Gitsigns only generates the signs for the visible portion of the buffer (and
--- I dont know of any event for this). So if we scroll around, we need to make
--- sure we fetch the signs again.
-vim.api.nvim_create_autocmd("WinScrolled", {
+-- Gitsigns doesn't create extmarks for the entire buffer, only the visible
+-- portion. So whenever we might see more of the buffer, we need to get the
+-- extmarks again.
+vim.api.nvim_create_autocmd({ "WinScrolled", "WinResized" }, {
   callback = function()
-    fresh_signs_available = true
+    additional_signs_available = true
   end,
 })
 
 
+-- Update when gitsigns signals that things have changed. This is completely
+-- insufficient on its own.
 -- :help gitsigns-events
 vim.api.nvim_create_autocmd("User", {
   pattern = { "GitSignsUpdate", "GitSignsChanged" },
   callback = function(args)
     clear_cache(args.buf)
+  end,
+})
+
+
+-- Forget all cache, when we bring nvim back from a background job. Because, we
+-- might have used some git commands in the mean time, and it doesn't update
+-- quite right.
+vim.api.nvim_create_autocmd({ "VimResume" }, {
+  callback = function()
+    cache = utils.Cache:new()
+    additional_signs_available = true
   end,
 })
 

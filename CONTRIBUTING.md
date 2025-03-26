@@ -25,6 +25,9 @@ Features of this particular implementation:
   before the buffer space). The default `signcolumn` is a shared space that both
   diagnostic and gitsigns write to, usually resulting in gitsigns being
   overwritten by diagnostic signs.
+- Everything is refreshed based on events. That means no or very little useless
+  operations, unlike other implementations where things are constantly refreshed
+  on a timer, often multiple times a second.
 
 
 ## Development tips
@@ -34,7 +37,9 @@ Signs are (also) contained in extmarks since Neovim 0.10.0
 Be mindful of the following:
 - The line the statuscolumn function wants to draw, which isn't necessarily in
   your "current buffer".
-- "Current buffer" probably means the buffer where your cursor is.
+- "Current buffer", to you, probably means the buffer where your cursor is. To
+  the function it can be any visible buffer it want to draw the statuscolumn
+  for, which is not necessarily your current buffer.
 - The function will be called once for each line for each buffer on screen. You
   should consider caching expensive function calls whenever possible. e.g. If the
   buffer hasn't changed then there is probably no reason for the git and LSP
@@ -96,13 +101,16 @@ Gitsigns:
 - Cached signs and symbols: 0.00015 ms avg, 0.0015 ms peak.
 
 Diagnostic sings:
-- No cache whatsoever: 0.07 ms avg, 0.27 ms peak.
-- Cached signs: 0.0003 ms avg, 0.0024 ms peak.
-- Cached symbols: 0.0007 ms avg, 0.0026 ms peak.
+- No cache whatsoever:      0.0700 ms avg, 0.2700 ms peak.
+- Cached signs:             0.0003 ms avg, 0.0024 ms peak.
+- Cached symbols:           0.0007 ms avg, 0.0026 ms peak.
 - Cached signs and symbols: 0.0003 ms avg, 0.0040 ms peak.
 
 Line number:
 - No cache whatsoever: 0.005 ms avg, 0.03 ms peak.
+
+Conclusion: caching is a good thing. Netting 90%+ execution time improvement
+when we hit the cache.
 
 
 ### Extmarks and namespaces

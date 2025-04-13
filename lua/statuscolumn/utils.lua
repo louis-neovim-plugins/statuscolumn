@@ -77,6 +77,13 @@ function M.Cache:add_signs(context, sign_details_by_line_number)
 end
 
 
+
+---@param context Context
+---@return string
+function M.Cache:get_symbol_key(context)
+  return string.format("%d:%d", context.lnum, context.virtnum) 
+end
+
 ---Fetches the sign_details index for a given context.
 ---Basically cache.buffer.changedtick
 ---
@@ -84,7 +91,8 @@ end
 ---@return string|nil
 function M.Cache:get_symbol(context)
   local buffer_cache = self.symbols_cache[context.draw_buffer] or {}
-  local symbol = buffer_cache[context.lnum]
+  local key = self.get_symbol_key(self, context)
+  local symbol = buffer_cache[key]
 
   return symbol
 end
@@ -94,9 +102,11 @@ end
 ---@param context Context
 ---@param symbol string
 function M.Cache:set_symbol(context, symbol)
+  local key = self.get_symbol_key(self, context)
+
   -- Note that we overwrite any previously set cache.
   self.symbols_cache[context.draw_buffer] = {
-    [context.lnum] = symbol,
+    [key] = symbol,
   }
 end
 
@@ -108,7 +118,8 @@ end
 function M.Cache:add_symbol(context, symbol)
   local buffer_cache = self.symbols_cache[context.draw_buffer] or {}
 
-  buffer_cache[context.lnum] = symbol
+  local key = self.get_symbol_key(self, context)
+  buffer_cache[key] = symbol
 
   self.symbols_cache[context.draw_buffer] = buffer_cache
 end

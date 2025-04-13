@@ -1,18 +1,17 @@
 local extmarks = require("statuscolumn.extmarks")
 local utils = require("statuscolumn.utils")
 
+local no_sign = " "
 
 local M = {}
 local cache = utils.Cache:new()
 
-
 ---Given a list of Diagnostic symbols, returns the symbol with the highest
 ---severity.
 ---
----@param sign_details vim.api.keyset.extmark_details[]
----@return string
-local function get_diagnostic_symbol_for_sign_details(sign_details)
-  if not sign_details then return " " end
+---@param all_signs_details vim.api.keyset.extmark_details[]
+---@return vim.api.keyset.extmark_details
+local function get_highest_severity_sign(all_signs_details)
 
   -- Note: this has nothing to do with the `priority` field on signs.
   local priorities = {
@@ -23,9 +22,9 @@ local function get_diagnostic_symbol_for_sign_details(sign_details)
   }
 
   local highest_priority = 0
-  local most_severe_sign_details = sign_details[1]
+  local most_severe_sign_details = all_signs_details[1]
 
-  for _, details in pairs(sign_details) do
+  for _, details in pairs(all_signs_details) do
     local hl_group = details.sign_hl_group
     local priority = priorities[hl_group]
 
@@ -35,10 +34,7 @@ local function get_diagnostic_symbol_for_sign_details(sign_details)
     end
   end
 
-  -- Strip the trailing space.
-  local text = most_severe_sign_details.sign_text:gsub("%s+", "")
-
-  return utils.highlight_text(most_severe_sign_details.sign_hl_group, text)
+  return most_severe_sign_details
 end
 
 
@@ -62,17 +58,32 @@ end
 ---@param context Context
 ---@return string
 function M.generate(context)
-  if not vim.diagnostic.is_enabled() then return " " end
+  if not vim.diagnostic.is_enabled() then return no_sign end
 
   local symbol = cache:get_symbol(context)
+  if symbol then return symbol end
 
-  if not symbol then
-    local sign_details = get_cached_signs(context)
+  -- print("A")
 
-    local line_diagnostic_signs = sign_details[context.lnum]
-    symbol = get_diagnostic_symbol_for_sign_details(line_diagnostic_signs)
-    cache:add_symbol(context, symbol)
+  local all_signs_details = get_cached_signs(context)
+  local line_diagnostic_signs = all_signs_details[context.lnum]
+  if line_diagnostic_signs == nil or vim.tbl_count(line_diagnostic_signs) == 0 then return no_sign end
+
+  local sign_details = get_highest_severity_sign(line_diagnostic_signs)
+
+  local text = ""
+  if context.virtnum < 0 then
+    if context.virtnum == -1 then
+      text = "└"
+    else
+      text = "│"
+    end
+  else
+    text = sign_details.sign_text:gsub("%s+", "")
   end
+
+  symbol = utils.highlight_text(sign_details.sign_hl_group, text)
+  cache:add_symbol(context, symbol)
 
   return symbol
 end

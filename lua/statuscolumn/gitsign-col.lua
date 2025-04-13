@@ -9,6 +9,25 @@ local cached_ns_id = nil
 local cache = utils.Cache:new()
 local additional_signs_available = false
 
+local function get_wrapped_line_height(context)
+  local wo = vim.wo[context.draw_win_id]
+
+  -- Get the width of the buffer.
+  local winwidth = vim.api.nvim_win_get_width(context.draw_win_id)
+  local numberwidth = wo.number and wo.numberwidth or 0
+  local signwidth = vim.fn.exists("*sign_define") == 1 and vim.fn.sign_getdefined() and 2 or 0
+  local foldwidth = wo.foldcolumn or 0
+
+  local bufferwidth = winwidth - numberwidth - signwidth - foldwidth
+
+  -- Fetch the line and calculate its display width.
+  local line = vim.fn.getline(vim.v.lnum)
+  local line_length = vim.fn.strdisplaywidth(line)
+
+  return math.floor(line_length / bufferwidth)
+end
+
+
 
 ---Get the extmarks namespace id of the Gitsigns plugin.
 ---
@@ -79,6 +98,7 @@ end
 ---@return string
 function M.generate(context)
   local symbol = nil
+
   if not additional_signs_available then
     symbol = cache:get_symbol(context)
   end

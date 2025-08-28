@@ -1,10 +1,12 @@
 local extmarks = require("statuscolumn.extmarks")
 local utils = require("statuscolumn.utils")
 
+
 local no_sign = " "
 
 local M = {}
 local cache = utils.Cache:new()
+
 
 ---Given a list of Diagnostic symbols, returns the symbol with the highest
 ---severity. e.g. If we have both a waning and an error on a given line, we
@@ -66,8 +68,6 @@ function M.generate(context, options)
 
     local symbol = cache:get_symbol(context)
     if symbol then return symbol end
-
-    -- print("A")
 
     local all_signs_details = get_cached_signs(context)
     local line_diagnostic_signs = all_signs_details[context.lnum]

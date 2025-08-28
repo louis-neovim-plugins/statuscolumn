@@ -51,8 +51,9 @@ function M.generate(context, options)
         generate_cache(context)
     end
 
-    local mark = cache:get_mark(context) or ' '
+    if context.virtnum ~= 0 then return "" end
 
+    local mark = cache:get_mark(context) or ' '
     local colored_mark = utils.highlight_text("Constant", mark)
 
     return colored_mark

@@ -95,8 +95,11 @@ end
 --- 3
 ---
 ---@param context Context
+---@param options StatuscolumnLineNumberOpts
 ---@return string
-function M.generate(context)
+function M.generate(context, options)
+    if not options.enabled then return "" end
+
   if not (vim.wo[context.draw_win_id].number or vim.wo[context.draw_win_id].relativenumber) then return "" end
 
   local text = get_text(context)

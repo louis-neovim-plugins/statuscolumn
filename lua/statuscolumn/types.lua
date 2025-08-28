@@ -5,17 +5,25 @@
 ---@field git_signs   StatuscolumnGitSignsOpts
 ---@field line_number StatuscolumnLineNumberOpts
 ---@field diagnostics StatuscolumnDiagnosticsOpts
+---
 ---@field excluded_filetypes string[]
+---@field enabled boolean Activate / deactivate the statuscolumn altogether.
+---@field padding_before_border string The padding character to add just before
+---the border column (git sign column).
 
 ---@class StatuscolumnMarksOpts
+---@field enabled boolean Activate / deactivate the column altogether.
 ---@field collapsible boolean Whether the column should collapse if empty.
 
 ---@class StatuscolumnDiagnosticsOpts
+---@field enabled boolean Activate / deactivate the column altogether.
 ---@field collapsible boolean Whether the column should collapse if empty.
 
 ---@class StatuscolumnLineNumberOpts
+---@field enabled boolean Activate / deactivate the column altogether.
 
 ---@class StatuscolumnGitSignsOpts
+---@field enabled boolean Activate / deactivate the column altogether.
 
 
 --- Top level Statuscolumn options container for the user.

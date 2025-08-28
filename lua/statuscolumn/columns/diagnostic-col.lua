@@ -56,8 +56,11 @@ end
 ---Generate the diagnostic part of a status column.
 ---
 ---@param context Context
+---@param options StatuscolumnDiagnosticsOpts
 ---@return string
-function M.generate(context)
+function M.generate(context, options)
+  if not options.enabled then return "" end
+
   if not vim.diagnostic.is_enabled() then return no_sign end
 
   local symbol = cache:get_symbol(context)

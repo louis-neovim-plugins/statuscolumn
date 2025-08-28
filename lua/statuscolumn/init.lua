@@ -73,24 +73,22 @@ end
 ---
 ---@return string
 function Generate_statuscolumn()
-    local context = get_context()
+    if not M.final_opts.enabled then return "" end
 
-    if is_excluded_filetype(context) then
-        return ""
-    end
+    local context = get_context()
+    if is_excluded_filetype(context) then return "" end
 
     -- :help statuscolumn
     -- :help statusline
     local components = {
-        marks_col.generate(context),
-        diagnostics_col.generate(context),
+        marks_col.generate(context, M.final_opts.marks),
+        diagnostics_col.generate(context, M.final_opts.diagnostics),
         -- Switch alignment. i.e. Segments above are aligned to the left. Segments
         -- below are aligned to the right.
         "%=",
-        line_number_col.generate(context),
-        -- Just some spacing before the border.
-        " ",
-        gitsign_col.generate(context),
+        line_number_col.generate(context, M.final_opts.line_number),
+        M.final_opts.padding_before_border,
+        gitsign_col.generate(context, M.final_opts.git_signs),
     }
 
     return table.concat(components)

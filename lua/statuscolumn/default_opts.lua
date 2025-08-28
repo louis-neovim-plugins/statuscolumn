@@ -3,16 +3,28 @@ local M = {}
 
 ---@type StatuscolumnOpts
 M.default_opts = {
+    enabled = true,
+    padding_before_border = " ",
     excluded_filetypes = {
         "neo-tree",
         "help",
         "lazy",
         "man",
     },
-    diagnostics = { collapsible = false },
-    marks = { collapsible = false },
-    line_number = {},
-    git_signs = {},
+    diagnostics = {
+        enabled = true,
+        collapsible = false,
+    },
+    marks = {
+        enabled = true,
+        collapsible = true,
+    },
+    line_number = {
+        enabled = true,
+    },
+    git_signs = {
+        enabled = true,
+    },
 }
 
 

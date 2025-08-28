@@ -42,8 +42,11 @@ end
 --- drawn.
 ---
 ---@param context Context
+---@param options StatuscolumnMarksOpts
 ---@return string
-function M.generate(context)
+function M.generate(context, options)
+    if not options.enabled then return '' end
+
     if context.lnum == 1 and context.virtnum == 0 then
         generate_cache(context)
     end

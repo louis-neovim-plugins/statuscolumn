@@ -76,8 +76,11 @@ end
 ---Generates the symbol to be used in the gitsign colummn.
 ---
 ---@param context Context
+---@param options StatuscolumnGitSignsOpts
 ---@return string
-function M.generate(context)
+function M.generate(context, options)
+  if not options.enabled then return "" end
+
   local symbol = nil
 
   if not additional_signs_available then

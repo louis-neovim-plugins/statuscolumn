@@ -64,9 +64,8 @@ local function get_context()
   local draw_buffer = vim.api.nvim_win_get_buf(vim.g.statusline_winid)
 
   local context = {
-    -- I know it's deprecated. I don't know what the correct "new" way to do it is though.
     cursor_win_id = vim.api.nvim_get_current_win(),
-    cursor_buffer = vim.api.nvim_buf_get_number(0),
+    cursor_buffer = vim.api.nvim_win_get_buf(0),
     cursor_line = unpack(vim.api.nvim_win_get_cursor(0)),
 
     draw_win_id = vim.g.statusline_winid,

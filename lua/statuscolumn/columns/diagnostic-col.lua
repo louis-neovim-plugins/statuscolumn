@@ -7,7 +7,8 @@ local M = {}
 local cache = utils.Cache:new()
 
 ---Given a list of Diagnostic symbols, returns the symbol with the highest
----severity.
+---severity. e.g. If we have both a waning and an error on a given line, we
+---would like to show the error sign rather than the warning sign.
 ---
 ---@param all_signs_details vim.api.keyset.extmark_details[]
 ---@return vim.api.keyset.extmark_details

@@ -14,11 +14,11 @@ local additional_signs_available = false
 ---
 ---@return integer
 local function get_ns_id()
-  if not cached_ns_id then
-    cached_ns_id = vim.api.nvim_get_namespaces()["gitsigns_signs_"]
-  end
+    if not cached_ns_id then
+        cached_ns_id = vim.api.nvim_get_namespaces()["gitsigns_signs_"]
+    end
 
-  return cached_ns_id
+    return cached_ns_id
 end
 
 
@@ -27,17 +27,17 @@ end
 ---
 ---@return table<number, vim.api.keyset.extmark_details[]>
 local function get_git_sign_details()
-  local ns_id = get_ns_id()
-  local signs = extmarks.get_signs_from_extmarks(ns_id)
+    local ns_id = get_ns_id()
+    local signs = extmarks.get_signs_from_extmarks(ns_id)
 
-  local signs_details_by_line = {}
-  for _, sign in pairs(signs) do
-    local line_number = sign[2] + 1
-    local sign_detail = sign[4]
-    signs_details_by_line[line_number] = { sign_detail }
-  end
+    local signs_details_by_line = {}
+    for _, sign in pairs(signs) do
+        local line_number = sign[2] + 1
+        local sign_detail = sign[4]
+        signs_details_by_line[line_number] = { sign_detail }
+    end
 
-  return signs_details_by_line
+    return signs_details_by_line
 end
 
 
@@ -46,15 +46,15 @@ end
 ---@param context Context
 ---@return table<number, vim.api.keyset.extmark_details[]>
 local function get_cached_signs(context)
-  local sign_details = cache:get_signs(context)
-  if additional_signs_available or not sign_details then
-    sign_details = get_git_sign_details()
-    cache:add_signs(context, sign_details)
+    local sign_details = cache:get_signs(context)
+    if additional_signs_available or not sign_details then
+        sign_details = get_git_sign_details()
+        cache:add_signs(context, sign_details)
 
-    additional_signs_available = false
-  end
+        additional_signs_available = false
+    end
 
-  return sign_details
+    return sign_details
 end
 
 
@@ -65,7 +65,7 @@ end
 ---@return string
 local function get_git_symbol_from_sign_details(sign_details)
     if not sign_details then
-      return utils.highlight_text("NonText", border_icon)
+        return utils.highlight_text("NonText", border_icon)
     end
 
     -- There's at most one git sign for a given. Ever.
@@ -79,24 +79,24 @@ end
 ---@param options StatuscolumnGitSignsOpts
 ---@return string
 function M.generate(context, options)
-  if not options.enabled then return "" end
+    if not options.enabled then return "" end
 
-  local symbol = nil
+    local symbol = nil
 
-  if not additional_signs_available then
-    symbol = cache:get_symbol(context)
-  end
+    if not additional_signs_available then
+        symbol = cache:get_symbol(context)
+    end
 
-  if not symbol then
-    local git_signs = get_cached_signs(context)
+    if not symbol then
+        local git_signs = get_cached_signs(context)
 
-    local sign_details = git_signs[context.lnum]
-    symbol = get_git_symbol_from_sign_details(sign_details)
+        local sign_details = git_signs[context.lnum]
+        symbol = get_git_symbol_from_sign_details(sign_details)
 
-    cache:add_symbol(context, symbol)
-  end
+        cache:add_symbol(context, symbol)
+    end
 
-  return symbol
+    return symbol
 end
 
 
@@ -108,8 +108,8 @@ end
 -- This is a debounced function, it will only trigger 150ms after the last call,
 -- no matter how many times you call it.
 local clear_cache = td.debounce_trailing(function(buffer_number)
-  cache:clear_buffer(buffer_number)
-  additional_signs_available = true
+    cache:clear_buffer(buffer_number)
+    additional_signs_available = true
 end, 150)
 
 
@@ -117,9 +117,9 @@ end, 150)
 -- portion. So whenever we might see more of the buffer, we need to get the
 -- extmarks again.
 vim.api.nvim_create_autocmd({ "WinScrolled", "WinResized" }, {
-  callback = function()
-    additional_signs_available = true
-  end,
+    callback = function()
+        additional_signs_available = true
+    end,
 })
 
 
@@ -127,10 +127,10 @@ vim.api.nvim_create_autocmd({ "WinScrolled", "WinResized" }, {
 -- insufficient on its own.
 -- :help gitsigns-events
 vim.api.nvim_create_autocmd("User", {
-  pattern = { "GitSignsUpdate", "GitSignsChanged" },
-  callback = function(args)
-    clear_cache(args.buf)
-  end,
+    pattern = { "GitSignsUpdate", "GitSignsChanged" },
+    callback = function(args)
+        clear_cache(args.buf)
+    end,
 })
 
 
@@ -138,18 +138,18 @@ vim.api.nvim_create_autocmd("User", {
 -- might have used some git commands in the mean time, and it doesn't update
 -- quite right.
 vim.api.nvim_create_autocmd({ "VimResume" }, {
-  callback = function()
-    cache = utils.Cache:new()
-    additional_signs_available = true
-  end,
+    callback = function()
+        cache = utils.Cache:new()
+        additional_signs_available = true
+    end,
 })
 
 
 -- No sense in keeping the cache for a buffer that's no longer loaded.
 vim.api.nvim_create_autocmd("BufDelete", {
-  callback = function(args)
-    cache:forget_buffer(args.buf)
-  end,
+    callback = function(args)
+        cache:forget_buffer(args.buf)
+    end,
 })
 
 

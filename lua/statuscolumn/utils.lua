@@ -6,19 +6,21 @@ local M = {}
 ---
 ---@param highlight_group string Highlight group name.
 ---@param text string String to be hihglighted.
----@return string highlighted_string
+---@return string Highlighted_string.
 function M.highlight_text(highlight_group, text)
-  return table.concat({ "%#", highlight_group, "#", text, "%*" })
+    return table.concat({ "%#", highlight_group, "#", text, "%*" })
 end
 
 
 ---Caching structure for signs.
 ---signs_cache is buffer_number -> changedtick -> line_number -> sign_details.
 ---symbols_cache is buffer_number -> line_number -> symbol.
+---marks_cache is buffer_number -> line_number -> symbol.
 ---
 ---@class Cache
 ---@field signs_cache table<number, table<number, table<number, vim.api.keyset.extmark_details[]>>>
 ---@field symbols_cache table<number, table<number, string>>
+---@field marks_cache table<number, table<number, string>>
 M.Cache = {}
 
 
@@ -26,11 +28,15 @@ M.Cache = {}
 ---
 ---@return Cache cache_structure
 function M.Cache:new()
-  local props = { signs_cache = {}, symbols_cache = {} }
-  local newObject = setmetatable(props, self)
-  self.__index = self
+    local props = {
+        signs_cache = {},
+        symbols_cache = {},
+        marks_cache = {},
+    }
+    local newObject = setmetatable(props, self)
+    self.__index = self
 
-  return newObject
+    return newObject
 end
 
 
@@ -40,10 +46,10 @@ end
 ---@param context Context
 ---@return table<number, vim.api.keyset.extmark_details[]>|nil
 function M.Cache:get_signs(context)
-  local buffer_cache = self.signs_cache[context.draw_buffer] or {}
-  local changedtick_cache = buffer_cache[context.changedtick]
+    local buffer_cache = self.signs_cache[context.draw_buffer] or {}
+    local changedtick_cache = buffer_cache[context.changedtick]
 
-  return changedtick_cache
+    return changedtick_cache
 end
 
 
@@ -52,10 +58,10 @@ end
 ---@param context Context
 ---@param sign_details_by_line_number table<number, vim.api.keyset.extmark_details[]>
 function M.Cache:set_signs(context, sign_details_by_line_number)
-  -- Note that we overwrite any previously set cache.
-  self.signs_cache[context.draw_buffer] = {
-    [context.changedtick] = sign_details_by_line_number,
-  }
+    -- Note that we overwrite any previously set cache.
+    self.signs_cache[context.draw_buffer] = {
+        [context.changedtick] = sign_details_by_line_number,
+    }
 end
 
 
@@ -64,25 +70,27 @@ end
 ---@param context Context
 ---@param sign_details_by_line_number table<number, vim.api.keyset.extmark_details[]>
 function M.Cache:add_signs(context, sign_details_by_line_number)
-  local buffer_cache = self.signs_cache[context.draw_buffer] or {}
-  local existing_signs_cache = buffer_cache[context.changedtick] or {}
+    local buffer_cache = self.signs_cache[context.draw_buffer] or {}
+    local existing_signs_cache = buffer_cache[context.changedtick] or {}
 
-  -- Note that cached values for a given line number will be overwritten.
-  self.signs_cache[context.draw_buffer] = {
-    [context.changedtick] = vim.tbl_deep_extend("force",
-      existing_signs_cache,
-      sign_details_by_line_number
-    )
-  }
+    -- Note that cached values for a given line number will be overwritten.
+    self.signs_cache[context.draw_buffer] = {
+        [context.changedtick] = vim.tbl_deep_extend("force",
+            existing_signs_cache,
+            sign_details_by_line_number
+        )
+    }
 end
 
 
-
+---Generates a "unique" key for indexes.
+---
 ---@param context Context
 ---@return string
 function M.Cache:get_symbol_key(context)
-  return string.format("%d:%d", context.lnum, context.virtnum) 
+    return string.format("%d:%d", context.lnum, context.virtnum)
 end
+
 
 ---Fetches the sign_details index for a given context.
 ---Basically cache.buffer.changedtick
@@ -90,11 +98,11 @@ end
 ---@param context Context
 ---@return string|nil
 function M.Cache:get_symbol(context)
-  local buffer_cache = self.symbols_cache[context.draw_buffer] or {}
-  local key = self.get_symbol_key(self, context)
-  local symbol = buffer_cache[key]
+    local buffer_cache = self.symbols_cache[context.draw_buffer] or {}
+    local key = self.get_symbol_key(self, context)
+    local symbol = buffer_cache[key]
 
-  return symbol
+    return symbol
 end
 
 
@@ -102,12 +110,12 @@ end
 ---@param context Context
 ---@param symbol string
 function M.Cache:set_symbol(context, symbol)
-  local key = self.get_symbol_key(self, context)
+    local key = self.get_symbol_key(self, context)
 
-  -- Note that we overwrite any previously set cache.
-  self.symbols_cache[context.draw_buffer] = {
-    [key] = symbol,
-  }
+    -- Note that we overwrite any previously set cache.
+    self.symbols_cache[context.draw_buffer] = {
+        [key] = symbol,
+    }
 end
 
 
@@ -116,20 +124,48 @@ end
 ---@param context Context
 ---@param symbol string
 function M.Cache:add_symbol(context, symbol)
-  local buffer_cache = self.symbols_cache[context.draw_buffer] or {}
+    local buffer_cache = self.symbols_cache[context.draw_buffer] or {}
 
-  local key = self.get_symbol_key(self, context)
-  buffer_cache[key] = symbol
+    local key = self.get_symbol_key(self, context)
+    buffer_cache[key] = symbol
 
-  self.symbols_cache[context.draw_buffer] = buffer_cache
+    self.symbols_cache[context.draw_buffer] = buffer_cache
 end
 
 
----Clears both cache contents for a given buffer.
+---Adds a symbol to a given draw buffer. The value for a given line may be overwritten.
+---
+---@param context Context
+---@param symbol string
+function M.Cache:add_mark(context, line_number, symbol)
+    local buffer_cache = self.marks_cache[context.draw_buffer] or {}
+
+    buffer_cache[line_number] = symbol
+
+    self.marks_cache[context.draw_buffer] = buffer_cache
+end
+
+
+---Fetches the sign_details index for a given context.
+---Basically cache.buffer.changedtick
+---
+---@param context Context
+---@return string|nil
+function M.Cache:get_mark(context)
+    local marks_cache = self.marks_cache[context.draw_buffer] or {}
+    local symbol = marks_cache[context.lnum]
+
+    return symbol
+end
+
+
+---Clears cache contents for a given buffer.
+---
 ---@param buffer_number number
 function M.Cache:clear_buffer(buffer_number)
-  self.signs_cache[buffer_number] = {}
-  self.symbols_cache[buffer_number] = {}
+    self.signs_cache[buffer_number] = {}
+    self.symbols_cache[buffer_number] = {}
+    self.marks_cache[buffer_number] = {}
 end
 
 
@@ -137,8 +173,9 @@ end
 ---
 ---@param buffer_number number
 function M.Cache:forget_buffer(buffer_number)
-  self.signs_cache[buffer_number] = nil
-  self.symbols_cache[buffer_number] = nil
+    self.signs_cache[buffer_number] = nil
+    self.symbols_cache[buffer_number] = nil
+    self.marks_cache[buffer_number] = nil
 end
 
 

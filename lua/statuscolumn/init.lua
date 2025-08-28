@@ -94,9 +94,10 @@ end
 ---as a git indicator.
 ---e.g. ' 24 ▌'
 ---
----This function will be called once per line. Be mindful of performance costs.
----This needs to be a global function for the statuscolumn to be able to call
----it.
+---This function will be called once per line for all visible windows. Be
+---mindful of performance costs. This needs to be a global function for the
+---statuscolumn to be able to call it.
+---
 ---@return string
 function Generate_statuscolumn()
   local context = get_context()

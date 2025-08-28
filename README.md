@@ -1,5 +1,4 @@
 # Statuscolumn README
-
 My own take on a [statuscolumn](https://neovim.io/doc/user/options.html#'statuscolumn')
 for Neovim.
 
@@ -11,7 +10,8 @@ implement some cool features I couldn't find in other statuscolumn plugins.
 The features:
 - Diagnostic signs are in their own column. They cannot be overwritten by
   gitsigns for example.
-- Strong border with the "buffer" space.
+- Strong border with the "buffer" space. Makes it easier to see where the code
+  indentation really starts.
 - Gitsigns are displayed as a different color on the border.
 - Wrapped lines now better display their span in the number column.
 - Marks are shown if there are any in the current buffer.

@@ -47,9 +47,11 @@ end
 function M.generate(context, options)
     if not options.enabled then return '' end
 
-    if context.lnum == 1 and context.virtnum == 0 then
-        generate_cache(context)
-    end
+    -- Only works if the first line is visible.
+    -- if context.lnum == 1 and context.virtnum == 0 then
+    --     generate_cache(context)
+    -- end
+    generate_cache(context)
 
     if context.virtnum ~= 0 then return "" end
 

@@ -13,6 +13,7 @@ local additional_signs_available = false
 ---Get the extmarks namespace id of the Gitsigns plugin.
 ---
 ---@return integer
+---
 local function get_ns_id()
     if not cached_ns_id then
         cached_ns_id = vim.api.nvim_get_namespaces()["gitsigns_signs_"]
@@ -26,6 +27,7 @@ end
 ---Gitsigns creates either 0 or 1 sign for a given line.
 ---
 ---@return table<number, vim.api.keyset.extmark_details[]>
+---
 local function get_git_sign_details()
     local ns_id = get_ns_id()
     local signs = extmarks.get_signs_from_extmarks(ns_id)
@@ -44,7 +46,9 @@ end
 ---Gets the signs from cache or, if not present, from the extmarks.
 ---
 ---@param context Context
+---
 ---@return table<number, vim.api.keyset.extmark_details[]>
+---
 local function get_cached_signs(context)
     local sign_details = cache:get_signs(context)
     if additional_signs_available or not sign_details then
@@ -62,7 +66,9 @@ end
 ---severity.
 ---
 ---@param sign_details vim.api.keyset.extmark_details[]
+---
 ---@return string
+---
 local function get_git_symbol_from_sign_details(sign_details)
     if not sign_details then
         return utils.highlight_text("NonText", border_icon)
@@ -77,12 +83,16 @@ end
 ---
 ---@param context Context
 ---@param options StatuscolumnGitSignsOpts
+---
 ---@return string
+---
 function M.generate(context, options)
     if not options.enabled then return "" end
+    if not options.border_colors then
+        return utils.highlight_text("NonText", border_icon)
+    end
 
     local symbol = nil
-
     if not additional_signs_available then
         symbol = cache:get_symbol(context)
     end

@@ -26,9 +26,8 @@
 ---line number.
 
 ---@class StatuscolumnGitSignsOpts
----@field enabled boolean Activate / deactivate the color on the border.
----@field hide_border boolean Deactivate the border itself. Effectively
----deactivating the column altogether.
+---@field enabled boolean Activate / deactivate the border completely.
+---@field border_colors boolean Activate / deactivate the gitsign colors on the border.
 
 
 --- Top level Statuscolumn options container for the user.

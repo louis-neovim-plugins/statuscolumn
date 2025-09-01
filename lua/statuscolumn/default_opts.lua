@@ -26,7 +26,7 @@ M.default_opts = {
     },
     git_signs = {
         enabled = true,
-        hide_border = false,
+        border_colors = true,
     },
 }
 

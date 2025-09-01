@@ -35,29 +35,32 @@ end
 ---@return Context
 local function get_context()
     local draw_buffer = vim.api.nvim_win_get_buf(vim.g.statusline_winid)
+    local draw_win_id = vim.g.statusline_winid
+    local first_visible_line = vim.api.nvim_win_call(
+        draw_win_id,
+        function () return vim.api.nvim_eval([[line('w0')]]) end
+    )
 
     local context = {
         cursor_win_id = vim.api.nvim_get_current_win(),
         cursor_buffer = vim.api.nvim_win_get_buf(0),
         cursor_line = unpack(vim.api.nvim_win_get_cursor(0)),
 
-        draw_win_id = vim.g.statusline_winid,
+        draw_win_id = draw_win_id,
         draw_buffer = draw_buffer,
         lnum = vim.v.lnum,
         relnum = vim.v.relnum,
         virtnum = vim.v.virtnum,
+        first_visible_line = first_visible_line,
 
         changedtick = vim.api.nvim_buf_get_changedtick(draw_buffer),
         vim_mode = vim.api.nvim_get_mode().mode,
     }
 
-    local is_cursor_line = context.lnum == context.cursor_line
-    local is_current_buffer = context.draw_buffer == context.cursor_buffer
-    local is_current_window = context.draw_win_id == context.cursor_win_id
-
-    context.is_cursor_line = is_cursor_line
-    context.is_current_buffer = is_current_buffer
-    context.is_current_window = is_current_window
+    context.is_cursor_line = context.lnum == context.cursor_line
+    context.is_current_buffer = context.draw_buffer == context.cursor_buffer
+    context.is_current_window = context.draw_win_id == context.cursor_win_id
+    context.is_first_visible_line = context.lnum == context.first_visible_line and context.virtnum == 0
 
     return context
 end
@@ -76,6 +79,12 @@ function Generate_statuscolumn()
     if not M.final_opts.enabled then return "" end
 
     local context = get_context()
+
+    -- Handle the "empty page" when you open Nvim without any file argument.
+    local ft = vim.bo[context.draw_buffer].filetype
+    local bt = vim.bo[context.draw_buffer].buftype
+    if ft == '' and bt == '' then return "" end
+
     if is_excluded_filetype(context) then return "" end
 
     -- :help statuscolumn
@@ -87,7 +96,6 @@ function Generate_statuscolumn()
         -- below are aligned to the right.
         "%=",
         line_number_col.generate(context, M.final_opts.line_number),
-        M.final_opts.padding_before_border,
         gitsign_col.generate(context, M.final_opts.git_signs),
     }
 

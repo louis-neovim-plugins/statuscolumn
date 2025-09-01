@@ -9,7 +9,9 @@ local M = {}
 ---https://www.reddit.com/r/neovim/comments/1ggwaho/multiline_showbreaklike_wrapping_symbols_in/
 ---
 ---@param context Context
+---
 ---@return number
+---
 local function get_wrapped_line_height(context)
     local wo = vim.wo[context.draw_win_id]
 
@@ -35,8 +37,11 @@ end
 ---I made some minor alterations to work for both normal and relative line numbers.
 ---
 ---@param context Context
+---@param options StatuscolumnLineNumberOpts
+---
 ---@return string
-local function get_text(context)
+---
+local function get_text(context, options)
     local text = ""
 
     if context.virtnum < 0 then
@@ -63,6 +68,18 @@ local function get_text(context)
         end
     end
 
+    -- Add leading spaces to make the number stable in width no matter what it
+    -- is.
+    if options.stable_width then
+        local max_line_number = vim.api.nvim_buf_line_count(context.draw_buffer)
+        local length_diff = string.len(max_line_number) - vim.fn.strdisplaywidth(text)
+        text = string.rep(" ", length_diff) .. text
+    end
+
+    -- Apply minimum width.
+    local length_diff = options.minimum_width - vim.fn.strdisplaywidth(text)
+    text = string.rep(" ", length_diff) .. text
+
     return text
 end
 
@@ -70,7 +87,9 @@ end
 ---Determines the highlight group to be used for the line.
 ---
 ---@param context Context
+---
 ---@return string
+---
 local function get_highlight_group(context)
     local cursorline_hl = "CursorLineNr"
     local line_hl = "LineNr"
@@ -96,16 +115,18 @@ end
 ---
 ---@param context Context
 ---@param options StatuscolumnLineNumberOpts
+---
 ---@return string
+---
 function M.generate(context, options)
     if not options.enabled then return "" end
 
-    if not (vim.wo[context.draw_win_id].number or vim.wo[context.draw_win_id].relativenumber) then return "" end
+    if not vim.wo[context.draw_win_id].number then return "" end
 
-    local text = get_text(context)
+    local text = get_text(context, options)
     local hl_group = get_highlight_group(context)
 
-    return utils.highlight_text(hl_group, text)
+    return utils.highlight_text(hl_group, text) .. options.padding_right
 end
 
 

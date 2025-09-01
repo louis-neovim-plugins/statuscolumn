@@ -2,8 +2,6 @@ local extmarks = require("statuscolumn.extmarks")
 local utils = require("statuscolumn.utils")
 
 
-local no_sign = " "
-
 local M = {}
 local cache = utils.Cache:new()
 
@@ -13,7 +11,9 @@ local cache = utils.Cache:new()
 ---would like to show the error sign rather than the warning sign.
 ---
 ---@param all_signs_details vim.api.keyset.extmark_details[]
+---
 ---@return vim.api.keyset.extmark_details
+---
 local function get_highest_severity_sign(all_signs_details)
 
     -- Note: this has nothing to do with the `priority` field on signs.
@@ -44,7 +44,9 @@ end
 ---Get the diagnostic sign details from extmarks or the cache (faster).
 ---
 ---@param context Context
+---
 ---@return table<number, vim.api.keyset.extmark_details[]>
+---
 local function get_cached_signs(context)
     local sign_details = cache:get_signs(context)
     if not sign_details then
@@ -60,18 +62,26 @@ end
 ---
 ---@param context Context
 ---@param options StatuscolumnDiagnosticsOpts
+---
 ---@return string
+---
 function M.generate(context, options)
-    if not options.enabled then return "" end
+    local no_diagnostic = string.rep(" ", options.minimum_width)
 
-    if not vim.diagnostic.is_enabled() then return no_sign end
+    if not options.enabled then return no_diagnostic end
+    if not vim.diagnostic.is_enabled() then return no_diagnostic end
 
     local symbol = cache:get_symbol(context)
     if symbol then return symbol end
 
     local all_signs_details = get_cached_signs(context)
     local line_diagnostic_signs = all_signs_details[context.lnum]
-    if line_diagnostic_signs == nil or vim.tbl_count(line_diagnostic_signs) == 0 then return no_sign end
+
+    -- No diagnostics.
+    if line_diagnostic_signs == nil or vim.tbl_count(line_diagnostic_signs) == 0 then
+        cache:add_symbol(context, no_diagnostic)
+        return no_diagnostic
+    end
 
     local sign_details = get_highest_severity_sign(line_diagnostic_signs)
 
@@ -82,14 +92,20 @@ function M.generate(context, options)
         else
             text = "│"
         end
+    elseif context.virtnum > 0 then
+        text = " "
     else
         text = sign_details.sign_text:gsub("%s+", "")
     end
 
-    symbol = utils.highlight_text(sign_details.sign_hl_group, text)
-    cache:add_symbol(context, symbol)
+    -- Apply minimum width.
+    local length_diff = options.minimum_width - vim.fn.strdisplaywidth(text)
+    text = string.rep(" ", length_diff) .. text
 
-    return symbol
+    local new_symbol = utils.highlight_text(sign_details.sign_hl_group, text)
+    cache:add_symbol(context, new_symbol)
+
+    return new_symbol
 end
 
 

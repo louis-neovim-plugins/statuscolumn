@@ -8,6 +8,11 @@ local marks_whitelist_patterns = {
     "%a", -- a-z marks.
 }
 
+local global_marks_whitelist_patterns = {
+    "%a", -- A-Z marks.
+}
+
+
 
 ---Fills the marks cache.
 ---
@@ -23,10 +28,18 @@ local function generate_cache(context)
         local mark_label = string.sub(mark.mark, -1)
         local mark_buffer_name = vim.api.nvim_buf_get_name(mark.pos[1])
 
-        if mark_buffer_name == current_buffer_name then
-            local line_number = mark.pos[2]
-            cache:add_mark(context, line_number, mark_label)
+        if mark_buffer_name ~= current_buffer_name then break end
+
+        local is_whitelisted_mark = false
+        for _, whitelist_pattern in pairs(global_marks_whitelist_patterns) do
+            is_whitelisted_mark = string.find(mark_label, whitelist_pattern) ~= nil
+
+            if is_whitelisted_mark then break end
         end
+        if not is_whitelisted_mark then break end
+
+        local line_number = mark.pos[2]
+        cache:add_mark(context, line_number, mark_label)
     end
 
     -- Handle local marks: a-z.

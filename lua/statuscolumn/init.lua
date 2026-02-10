@@ -6,14 +6,14 @@ local diagnostics_col = require("statuscolumn.columns.diagnostic-col")
 local marks_col = require("statuscolumn.columns.marks-col")
 
 
-local M = {}
+local statuscolumn = {}
 
 
 ---Merges the user options with the default options.
 ---
 ---@param opts UserStatuscolumnOpts
 local function process_opts(opts)
-    M.final_opts = vim.tbl_deep_extend("force", default_opts, opts)
+    statuscolumn.final_opts = vim.tbl_deep_extend("force", default_opts, opts)
 end
 
 
@@ -24,7 +24,7 @@ end
 ---@return boolean
 local function is_excluded_filetype(context)
     return vim.tbl_contains(
-        M.final_opts.excluded_filetypes,
+        statuscolumn.final_opts.excluded_filetypes,
         vim.bo[context.draw_buffer].filetype
     )
 end
@@ -76,27 +76,27 @@ end
 ---
 ---@return string
 function Generate_statuscolumn()
-    if not M.final_opts.enabled then return "" end
+    if not statuscolumn.final_opts.enabled then return "" end
 
     local context = get_context()
 
     -- Handle the "empty page" when you open Nvim without any file argument.
-    local ft = vim.bo[context.draw_buffer].filetype
-    local bt = vim.bo[context.draw_buffer].buftype
-    if ft == '' and bt == '' then return "" end
+    -- local ft = vim.bo[context.draw_buffer].filetype
+    -- local bt = vim.bo[context.draw_buffer].buftype
+    -- if ft == '' and bt == '' then return "" end
 
     if is_excluded_filetype(context) then return "" end
 
     -- :help statuscolumn
     -- :help statusline
     local components = {
-        marks_col.generate(context, M.final_opts.marks),
-        diagnostics_col.generate(context, M.final_opts.diagnostics),
+        marks_col.generate(context, statuscolumn.final_opts.marks),
         -- Switch alignment. i.e. Segments above are aligned to the left. Segments
         -- below are aligned to the right.
         "%=",
-        line_number_col.generate(context, M.final_opts.line_number),
-        gitsign_col.generate(context, M.final_opts.git_signs),
+        diagnostics_col.generate(context, statuscolumn.final_opts.diagnostics),
+        line_number_col.generate(context, statuscolumn.final_opts.line_number),
+        gitsign_col.generate(context, statuscolumn.final_opts.git_signs),
     }
 
     return table.concat(components)
@@ -106,12 +106,21 @@ end
 ---Configures nvim with the statuscolumn.
 ---
 ---@param opts UserStatuscolumnOpts
-function M.setup(opts)
+function statuscolumn.setup(opts)
     process_opts(opts)
 
     vim.opt.statuscolumn = "%!v:lua.Generate_statuscolumn()"
 end
 
 
-return M
+---Toggle the visibility of a given column.
+---These changes are not persisted between setup() calls.
+---
+---@param column 'marks' | 'line_number' | 'diagnostics'
+function statuscolumn.toggle(column)
+    statuscolumn.final_opts[column].enabled = not statuscolumn.final_opts[column].enabled
+end
+
+
+return statuscolumn
 

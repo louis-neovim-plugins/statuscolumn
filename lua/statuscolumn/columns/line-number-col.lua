@@ -45,7 +45,8 @@ local function get_text(context, options)
     local text = ""
 
     if context.virtnum < 0 then
-        text = " "
+        -- text = " "
+        text = "󱞩"
     elseif context.virtnum > 0 then
         local num_wraps = get_wrapped_line_height(context)
 
@@ -95,7 +96,11 @@ local function get_highlight_group(context)
     local line_hl = "LineNr"
 
     if context.is_cursor_line and context.is_current_window then
-        return cursorline_hl
+        if context.virtnum < 0 then
+            return line_hl
+        else
+            return cursorline_hl
+        end
     else
         return line_hl
     end

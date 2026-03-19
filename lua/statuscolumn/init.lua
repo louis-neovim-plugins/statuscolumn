@@ -80,11 +80,6 @@ function Generate_statuscolumn()
 
     local context = get_context()
 
-    -- Handle the "empty page" when you open Nvim without any file argument.
-    local ft = vim.bo[context.draw_buffer].filetype
-    local bt = vim.bo[context.draw_buffer].buftype
-    if ft == '' and bt == '' then return "" end
-
     if is_excluded_filetype(context) then return "" end
 
     -- :help statuscolumn
